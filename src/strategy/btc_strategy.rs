@@ -5,7 +5,7 @@
 #![allow(dead_code)]
 
 use std::collections::VecDeque;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use crate::base_classes::types::Side;
 use crate::execution::{

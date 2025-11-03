@@ -2,7 +2,7 @@
 //! Ловит быстрое падение цены и выставляет buy ордер
 
 use crate::backtest::market::TradeTick;
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
@@ -485,7 +485,7 @@ mod tests {
                 best_ask: Some(100.1),
             },
             TradeTick {
-                timestamp: now + chrono::Duration::milliseconds(100),
+                timestamp: now + chrono::Duration::try_milliseconds(100).unwrap(),
                 symbol: "BTC_USDT".to_string(),
                 price: 95.0, // Прострел на 5%
                 volume: 10.0,

@@ -89,12 +89,10 @@ impl BacktestMetrics {
         let fill_rate_score = ((fill_rate / 100.0f64 * 10.0f64)).max(0.0f64).min(10.0f64);
         
         // Overall Rating (средневзвешенное)
-        let overall_rating = (
-            profitability_score * 0.35 +
+        let overall_rating = profitability_score * 0.35 +
             stability_score * 0.25 +
             risk_score * 0.25 +
-            fill_rate_score * 0.15
-        );
+            fill_rate_score * 0.15;
         
         // Stars (0-5)
         let stars = match overall_rating {

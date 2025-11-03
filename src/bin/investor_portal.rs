@@ -284,7 +284,8 @@ async fn run_backtest(
     Json(request): Json<BacktestRequest>,
 ) -> Result<Json<BacktestResponse>, StatusCode> {
     use std::time::{SystemTime, UNIX_EPOCH};
-    let backtest_id = format!("bt_{}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs());
+    let backtest_id = format!("bt_{}", 
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs());
     
     println!("📊 Запуск бэктеста {}: стратегии={:?}, символы={:?}, плечо={}x", 
              backtest_id, request.strategies, request.symbols, request.leverage);
@@ -581,9 +582,9 @@ fn convert_to_db_result(
         losing_trades: result.losses as i32,
         win_rate: Decimal::try_from(result.win_rate).unwrap_or_default(),
         roi: Decimal::try_from(result.roi).unwrap_or_default(),
-        profit_factor: Some(Decimal::try_from(result.profit_factor).unwrap_or_default()),
-        max_drawdown: Some(Decimal::try_from(result.max_drawdown).unwrap_or_default()),
-        sharpe_ratio: Some(Decimal::try_from(backtest_result.sharpe_ratio).unwrap_or_default()),
+        profit_factor: backtest_result.profit_factor.map(|pf| Decimal::try_from(pf).unwrap_or_default()),
+        max_drawdown: backtest_result.max_drawdown.map(|dd| Decimal::try_from(dd).unwrap_or_default()),
+        sharpe_ratio: backtest_result.sharpe_ratio.map(|sr| Decimal::try_from(sr).unwrap_or_default()),
         start_time: Some(Utc::now() - Duration::days(180)),
         end_time: Some(Utc::now()),
         config: None,

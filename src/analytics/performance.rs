@@ -1,6 +1,6 @@
 //! Метрики производительности торговли
 
-use crate::analytics::trade_analyzer::TradeRecord;
+// use crate::analytics::trade_analyzer::TradeRecord;
 
 #[derive(Debug, Clone)]
 pub struct PerformanceMetrics {

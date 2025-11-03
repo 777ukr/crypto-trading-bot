@@ -110,11 +110,11 @@ impl TradeAnalyzer {
         score += (metrics.win_rate / 100.0) * 0.4;
         
         // Profit factor component (30%)
-        let pf_score = (metrics.profit_factor.min(5.0) / 5.0);
+        let pf_score = metrics.profit_factor.min(5.0) / 5.0;
         score += pf_score * 0.3;
         
         // Sharpe ratio component (20%)
-        let sharpe_score = (metrics.sharpe_ratio.min(3.0) / 3.0);
+        let sharpe_score = metrics.sharpe_ratio.min(3.0) / 3.0;
         score += sharpe_score * 0.2;
         
         // Drawdown penalty (10%)

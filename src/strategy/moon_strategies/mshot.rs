@@ -2,7 +2,7 @@
 //! Ловит прострелы и автоматически переставляет ордер при движении цены
 
 use crate::backtest::market::TradeTick;
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
