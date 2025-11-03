@@ -54,6 +54,8 @@ pub struct BacktestResult {
     pub fill_rate: f64,             // Процент исполненных ордеров
     pub avg_trade_duration_ms: f64, // Средняя длительность сделки
     pub rating: StrategyRating,     // Рейтинг стратегии
+    pub trades: Vec<TradeRecord>,   // Список всех сделок
+    pub equity_curve: Vec<(DateTime<Utc>, f64)>, // Кривая equity по времени
 }
 
 impl BacktestMetrics {
@@ -281,6 +283,8 @@ impl BacktestMetrics {
             fill_rate,
             avg_trade_duration_ms: avg_duration,
             rating,
+            trades: self.trades.clone(),
+            equity_curve: self.equity_curve.clone(),
         }
     }
 }

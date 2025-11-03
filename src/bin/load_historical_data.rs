@@ -24,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
     
     // Проверка переменных окружения
     let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL должен быть установлен");
+        .unwrap_or_else(|_| "postgresql://postgres:postgres@localhost:5432/cryptotrader".to_string());
     
     // Поддерживаем оба варианта названий переменных
     let api_key = env::var("GATE_API_KEY")
@@ -41,8 +41,16 @@ async fn main() -> anyhow::Result<()> {
     }
     
     // Подключение к БД
-    log::info!("📊 Подключение к PostgreSQL...");
-    let pool = DatabaseRepository::create_pool(&database_url).await?;
+    log::info!("📊 Подключение к PostgreSQL: {}", database_url);
+    let pool = match DatabaseRepository::create_pool(&database_url).await {
+        Ok(p) => p,
+        Err(e) => {
+            log::error!("❌ Ошибка подключения к БД: {}", e);
+            log::error!("   Попробуйте установить PostgreSQL или проверьте DATABASE_URL");
+            log::error!("   Пример: export DATABASE_URL=postgresql://user:pass@localhost:5432/cryptotrader");
+            return Err(e);
+        }
+    };
     let repo = DatabaseRepository::new(pool);
     log::info!("✅ Подключено к базе данных");
     

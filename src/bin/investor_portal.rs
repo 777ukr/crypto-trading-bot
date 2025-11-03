@@ -95,6 +95,7 @@ struct TradeRecord {
     pnl: f64,
     pnl_percent: f64,
     size: f64,
+    symbol: Option<String>, // Добавляем для совместимости
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -545,8 +546,25 @@ fn convert_to_strategy_result(
         leverage,
         profitable: roi > 0.0,
         rating: Some(rating),
-        trades_list: vec![], // TODO: извлечь из backtest_result
-        equity_curve: vec![], // TODO: извлечь из backtest_result
+        trades_list: backtest_result.trades.iter().map(|t| TradeRecord {
+            timestamp: t.entry_time.timestamp(),
+            entry_price: t.entry_price,
+            exit_price: t.exit_price,
+            side: if t.is_buy { "BUY".to_string() } else { "SELL".to_string() },
+            pnl: t.pnl,
+            pnl_percent: if t.entry_price > 0.0 && t.size > 0.0 {
+                (t.pnl / (t.entry_price * t.size)) * 100.0
+            } else {
+                0.0
+            },
+            size: t.size,
+            symbol: Some(t.symbol.clone()),
+        }).collect(),
+        equity_curve: backtest_result.equity_curve.iter().map(|(ts, equity)| EquityPoint {
+            timestamp: ts.timestamp(),
+            equity: *equity + initial_balance,
+            pnl: *equity,
+        }).collect(),
     }
 }
 
@@ -663,14 +681,28 @@ async fn get_trades(
     State(state): State<AppState>,
     axum::extract::Path(backtest_id): axum::extract::Path<String>,
 ) -> Json<Vec<TradeRecord>> {
-    // TODO: Извлечь trades из результатов
-    Json(vec![])
+    let results = state.results.lock().await;
+    // Ищем результат по backtest_id (упрощенно - берем последний)
+    if let Some(result) = results.iter().find(|r| r.strategy_name.contains(&backtest_id) || backtest_id == "latest") {
+        Json(result.trades_list.clone())
+    } else if let Some(result) = results.last() {
+        Json(result.trades_list.clone())
+    } else {
+        Json(vec![])
+    }
 }
 
 async fn get_equity_curve(
     State(state): State<AppState>,
     axum::extract::Path(backtest_id): axum::extract::Path<String>,
 ) -> Json<Vec<EquityPoint>> {
-    // TODO: Извлечь equity curve из результатов
-    Json(vec![])
+    let results = state.results.lock().await;
+    // Ищем результат по backtest_id (упрощенно - берем последний)
+    if let Some(result) = results.iter().find(|r| r.strategy_name.contains(&backtest_id) || backtest_id == "latest") {
+        Json(result.equity_curve.clone())
+    } else if let Some(result) = results.last() {
+        Json(result.equity_curve.clone())
+    } else {
+        Json(vec![])
+    }
 }
