@@ -3,15 +3,12 @@
 #![cfg(feature = "gate_exec")]
 
 use crate::backtest::market::TradeTick;
-#[cfg(feature = "gate_exec")]
 use crate::strategy::moon_strategies::{
     MShotStrategy, MShotConfig, MShotSignal,
     MStrikeStrategy, MStrikeConfig, MStrikeSignal,
     HookStrategy, HookConfig, HookSignal,
+    mshot::Deltas,
 };
-
-#[cfg(feature = "gate_exec")]
-use crate::strategy::moon_strategies::mshot::Deltas;
 
 /// Трейт для унификации работы со стратегиями в бэктестере
 pub trait StrategyAdapter {
@@ -44,7 +41,7 @@ impl MShotAdapter {
     
     pub fn default() -> Self {
         Self {
-            strategy: MShotStrategy::default(),
+            strategy: MShotStrategy::new(MShotConfig::default()),
         }
     }
 }
@@ -56,6 +53,8 @@ impl StrategyAdapter for MShotAdapter {
             MShotSignal::PlaceBuy { price, size } => StrategyAction::PlaceBuy { price, size },
             MShotSignal::ReplaceBuy { new_price } => StrategyAction::ReplaceBuy { new_price },
             MShotSignal::RepeatShot { price, size } => StrategyAction::PlaceBuy { price, size },
+            MShotSignal::CancelBuy => StrategyAction::CancelOrder { order_id: 0 },
+            MShotSignal::PlaceSell { price, size } => StrategyAction::PlaceSell { price, size },
         }
     }
     
@@ -82,7 +81,7 @@ impl MStrikeAdapter {
     
     pub fn default() -> Self {
         Self {
-            strategy: MStrikeStrategy::default(),
+            strategy: MStrikeStrategy::new(MStrikeConfig::default()),
         }
     }
 }
@@ -131,7 +130,7 @@ impl HookAdapter {
     
     pub fn default() -> Self {
         Self {
-            strategy: HookStrategy::default(),
+            strategy: HookStrategy::new(HookConfig::default()),
         }
     }
 }
