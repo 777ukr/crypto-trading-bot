@@ -15,6 +15,11 @@ use serde::{Deserialize, Serialize};
 use super::market::{MarketState, TradeStream};
 use super::emulator::MarketEmulator;
 use super::metrics::{BacktestMetrics, BacktestResult};
+use super::delta_calculator::DeltaCalculator;
+#[cfg(feature = "gate_exec")]
+use super::strategy_adapter::{StrategyAdapter, StrategyAction};
+#[cfg(feature = "gate_exec")]
+use crate::strategy::moon_strategies::mshot::Deltas;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -104,6 +109,13 @@ pub struct BacktestEngine {
     
     /// Флаг остановки
     stopped: bool,
+
+    /// Подключенные стратегии (адаптеры)
+    #[cfg(feature = "gate_exec")]
+    strategies: Vec<Box<dyn StrategyAdapter + Send>>,
+    
+    /// Калькулятор дельт для стратегий
+    delta_calculator: DeltaCalculator, 
 }
 
 #[derive(Debug, Clone)]
@@ -157,12 +169,21 @@ impl BacktestEngine {
             metrics: BacktestMetrics::new(),
             event_queue: VecDeque::new(),
             stopped: false,
+            #[cfg(feature = "gate_exec")]
+            strategies: Vec::new(),
+            delta_calculator: DeltaCalculator::new(),
         }
     }
     
     /// Добавить поток данных
     pub fn add_stream(&mut self, stream: TradeStream) {
         self.streams.push(stream);
+    }
+
+    /// Добавить стратегию (адаптер)
+    #[cfg(feature = "gate_exec")]
+    pub fn add_strategy_adapter<A: StrategyAdapter + Send + 'static>(&mut self, adapter: A) {
+        self.strategies.push(Box::new(adapter));
     }
     
     /// Запуск бэктеста
@@ -222,6 +243,9 @@ impl BacktestEngine {
                 
                 // Обновляем состояние рынка
                 self.market_state.update_from_tick(&next_tick);
+                
+                // Обновляем калькулятор дельт
+                self.delta_calculator.update(&next_tick, adjusted_time);
                 
                 // Эмулируем исполнение ордеров
                 #[cfg(feature = "rand")]
@@ -345,8 +369,34 @@ impl BacktestEngine {
         tick: &super::market::TradeTick,
         adjusted_time: DateTime<Utc>,
     ) {
-        // Здесь будут вызываться стратегии для пересчета
-        // Пока заглушка - в реальной реализации будет trait Strategy
+        // Вызываем стратегии через адаптеры (если подключены)
+        #[cfg(feature = "gate_exec")]
+        {
+            // Вычисляем реальные дельты из истории
+            let deltas = self.delta_calculator.calculate_deltas(tick.price, adjusted_time);
+            for adapter in &mut self.strategies {
+                match adapter.on_tick(tick, &deltas) {
+                    StrategyAction::NoAction => {}
+                    StrategyAction::PlaceBuy { price, size } => {
+                        let _id = self.emulator.place_limit_order(&tick.symbol, price, size, true, adjusted_time);
+                        // Можно сохранить id при необходимости
+                    }
+                    StrategyAction::PlaceSell { price, size } => {
+                        let _id = self.emulator.place_limit_order(&tick.symbol, price, size, false, adjusted_time);
+                    }
+                    StrategyAction::ReplaceBuy { new_price } => {
+                        // Переставление: выберем любой активный ордер по символу (упрощенно)
+                        if let Some((&order_id, _)) = self.emulator.get_active_orders().iter().find(|(_, o)| o.symbol == tick.symbol) {
+                            self.emulator.reposition_order(order_id, new_price, adjusted_time);
+                        }
+                    }
+                    StrategyAction::CancelOrder { order_id } => {
+                        let _ = self.emulator.cancel_order(order_id);
+                    }
+                    StrategyAction::DetectSignal { .. } => {}
+                }
+            }
+        }
         
         // Эмулируем случайную задержку на перестановку Sell ордеров
         #[cfg(feature = "rand")]

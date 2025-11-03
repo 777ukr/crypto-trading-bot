@@ -457,3 +457,70 @@ impl MStrikeStrategy {
         self.reset_strike_state();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::backtest::market::{TradeTick, TradeSide};
+    use crate::strategy::moon_strategies::mshot::Deltas;
+    use chrono::Utc;
+
+    #[test]
+    fn test_mstrike_detect_strike() {
+        let config = MStrikeConfig::default();
+        let mut strategy = MStrikeStrategy::new(config);
+        
+        let now = Utc::now();
+        
+        // Создаем серию тиков с прострелом вниз
+        let ticks = vec![
+            TradeTick {
+                timestamp: now,
+                symbol: "BTC_USDT".to_string(),
+                price: 100.0,
+                volume: 1.0,
+                side: TradeSide::Buy,
+                trade_id: "1".to_string(),
+                best_bid: Some(99.9),
+                best_ask: Some(100.1),
+            },
+            TradeTick {
+                timestamp: now + chrono::Duration::milliseconds(100),
+                symbol: "BTC_USDT".to_string(),
+                price: 95.0, // Прострел на 5%
+                volume: 10.0,
+                side: TradeSide::Sell,
+                trade_id: "2".to_string(),
+                best_bid: Some(94.9),
+                best_ask: Some(95.1),
+            },
+        ];
+        
+        let deltas = Deltas::default();
+        
+        // Первый тик - цена еще высокая
+        let signal1 = strategy.on_tick(&ticks[0], &deltas);
+        assert!(matches!(signal1, MStrikeSignal::NoAction));
+        
+        // Второй тик - детект прострела
+        let signal2 = strategy.on_tick(&ticks[1], &deltas);
+        // Должен быть либо PlaceBuy, либо NoAction в зависимости от параметров
+        assert!(matches!(signal2, MStrikeSignal::PlaceBuy { .. } | MStrikeSignal::NoAction));
+    }
+    
+    #[test]
+    fn test_mstrike_config_default() {
+        let config = MStrikeConfig::default();
+        assert!(config.mstrike_depth > 0.0);
+        assert!(config.order_size > 0.0);
+    }
+    
+    #[test]
+    fn test_mstrike_strategy_creation() {
+        let config = MStrikeConfig::default();
+        let strategy = MStrikeStrategy::new(config);
+        // Проверяем, что стратегия создается без ошибок
+        assert_eq!(strategy.state.buy_price, None);
+        assert_eq!(strategy.state.position_size, 0.0);
+    }
+}

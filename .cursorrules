@@ -433,14 +433,16 @@ src/database/
 ### Module Structure
 ```
 src/backtest/
-├── engine.rs       # Основной движок бэктеста
-├── orderbook.rs    # L2/L3 стакан с очередями
-├── emulator.rs     # Эмулятор рынка
-├── market.rs       # TradeTick, TradeStream
-├── filters.rs      # Фильтры и селекторы
-├── metrics.rs      # Метрики и рейтинг
-├── replay.rs       # Replay движок
-└── bin_format.rs   # Чтение/запись .bin файлов
+├── engine.rs           # Основной движок бэктеста
+├── orderbook.rs        # L2/L3 стакан с очередями
+├── emulator.rs         # Эмулятор рынка
+├── market.rs           # TradeTick, TradeStream
+├── filters.rs          # Фильтры и селекторы
+├── metrics.rs          # Метрики и рейтинг
+├── replay.rs           # Replay движок
+├── bin_format.rs       # Чтение/запись .bin файлов
+├── delta_calculator.rs # Калькулятор дельт (15m, 1h, 3h, BTC, Market)
+└── strategy_adapter.rs # Адаптер стратегий для бэктестера
 ```
 
 ## MoonBot Strategies Implementation
@@ -460,7 +462,9 @@ src/backtest/
 ### Strategy Integration
 - ✅ **StrategyAdapter trait**: Унифицированный интерфейс для интеграции с бэктестером
 - ✅ **MShotAdapter, MStrikeAdapter, HookAdapter**: Готовы к использованию
-- ⏳ Интеграция в BacktestEngine (в разработке)
+- ✅ **Интеграция в BacktestEngine**: Стратегии подключены через адаптеры в `recalculate_strategies`
+- ✅ **DeltaCalculator**: Реальное вычисление дельт из истории тиков (15m, 1h, 3h, BTC, Market)
+- ✅ **Unit Tests**: Добавлены тесты для MStrike и Hook стратегий
 
 ## API Endpoints Status
 
@@ -483,11 +487,11 @@ src/backtest/
 ## Testing Checklist
 
 ### Before Committing
-- [ ] `cargo check --features gate_exec` - без ошибок
-- [ ] `cargo test` - все тесты проходят
-- [ ] File size < 1200 lines (желательно < 800)
-- [ ] No unused imports/variables (fix warnings)
-- [ ] Documentation для public APIs
+- [x] `cargo check --features gate_exec` - без ошибок ✅
+- [x] `cargo test` - все тесты проходят ✅
+- [x] File size < 1200 lines (желательно < 800) ✅
+- [x] No unused imports/variables (fix warnings) ✅
+- [x] Documentation для public APIs ✅
 
 ### Integration Tests
 - [ ] Backtest engine работает с реальными данными

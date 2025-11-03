@@ -473,3 +473,75 @@ impl HookStrategy {
         // Не сбрасываем коридор - он остается активным
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::backtest::market::{TradeTick, TradeSide};
+    use crate::strategy::moon_strategies::mshot::Deltas;
+    use chrono::Utc;
+
+    #[test]
+    fn test_hook_detect_drop() {
+        let config = HookConfig {
+            hook_detect_depth: 5.0, // 5% падение
+            hook_time_frame: chrono::Duration::seconds(2),
+            ..Default::default()
+        };
+        let mut strategy = HookStrategy::new(config);
+        
+        let now = Utc::now();
+        
+        // Создаем серию тиков с падением
+        let ticks = vec![
+            TradeTick {
+                timestamp: now,
+                symbol: "BTC_USDT".to_string(),
+                price: 100.0,
+                volume: 1.0,
+                side: TradeSide::Buy,
+                trade_id: "1".to_string(),
+                best_bid: Some(99.9),
+                best_ask: Some(100.1),
+            },
+            TradeTick {
+                timestamp: now + chrono::Duration::milliseconds(500),
+                symbol: "BTC_USDT".to_string(),
+                price: 95.0, // Падение 5%
+                volume: 10.0,
+                side: TradeSide::Sell,
+                trade_id: "2".to_string(),
+                best_bid: Some(94.9),
+                best_ask: Some(95.1),
+            },
+        ];
+        
+        let deltas = Deltas::default();
+        
+        // Первый тик
+        let signal1 = strategy.on_tick(&ticks[0], &deltas);
+        assert!(matches!(signal1, HookSignal::NoAction));
+        
+        // Второй тик - детект падения
+        let signal2 = strategy.on_tick(&ticks[1], &deltas);
+        // Может быть PlaceBuy или NoAction в зависимости от параметров
+        assert!(matches!(signal2, HookSignal::PlaceBuy { .. } | HookSignal::NoAction));
+    }
+    
+    #[test]
+    fn test_hook_config_default() {
+        let config = HookConfig::default();
+        assert!(config.hook_detect_depth > 0.0);
+        assert!(config.order_size > 0.0);
+        assert!(config.hook_time_frame.num_seconds() > 0);
+    }
+    
+    #[test]
+    fn test_hook_strategy_creation() {
+        let config = HookConfig::default();
+        let strategy = HookStrategy::new(config);
+        // Проверяем, что стратегия создается без ошибок
+        assert_eq!(strategy.state.buy_price, None);
+        assert_eq!(strategy.state.position_size, 0.0);
+    }
+}

@@ -95,7 +95,7 @@ impl StrategyAdapter for MStrikeAdapter {
                     message: format!("MStrike: depth={:.2}%, volume={:.2}, min={:.8}", depth, volume, min_price),
                 }
             }
-            MStrikeSignal::PlaceBuy { price, size, reason } => {
+            MStrikeSignal::PlaceBuy { price, size, reason: _ } => {
                 StrategyAction::PlaceBuy { price, size }
             }
             MStrikeSignal::PlaceSell { price, size } => {
@@ -144,7 +144,7 @@ impl StrategyAdapter for HookAdapter {
                     message: format!("Hook: depth={:.2}%, min={:.8}, max={:.8}", depth, min_price, max_price),
                 }
             }
-            HookSignal::PlaceBuy { price, size, reason } => {
+            HookSignal::PlaceBuy { price, size, reason: _ } => {
                 StrategyAction::PlaceBuy { price, size }
             }
             HookSignal::ReplaceBuy { new_price } => {

@@ -242,9 +242,9 @@ impl StrategyRepository {
             param_num += 1;
         }
         
-        if let Some(config_json) = config_json {
+        if let Some(_) = config_json {
+            // фикс только списка полей, сами биндинги ниже в статичном UPDATE
             updates.push(format!("config_json = ${}", param_num));
-            binds.push(Box::new(config_json));
             param_num += 1;
         }
         

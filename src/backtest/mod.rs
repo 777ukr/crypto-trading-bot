@@ -9,6 +9,7 @@ pub mod metrics;
 pub mod bin_format;
 pub mod orderbook;
 pub mod filters;
+pub mod delta_calculator;
 #[cfg(feature = "gate_exec")]
 pub mod strategy_adapter;
 
@@ -20,4 +21,5 @@ pub use metrics::{BacktestMetrics, BacktestResult};
 pub use bin_format::{BinFileReader, BinFileWriter, TradeRecord};
 pub use orderbook::{OrderBook, OrderLevel, FillModel};
 pub use filters::{MarketFilters, MarketSelector, SortCriterion};
+pub use delta_calculator::DeltaCalculator;
 
