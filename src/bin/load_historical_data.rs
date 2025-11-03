@@ -26,8 +26,13 @@ async fn main() -> anyhow::Result<()> {
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL должен быть установлен");
     
-    let api_key = env::var("GATE_API_KEY").ok();
-    let api_secret = env::var("GATE_API_SECRET").ok();
+    // Поддерживаем оба варианта названий переменных
+    let api_key = env::var("GATE_API_KEY")
+        .or_else(|_| env::var("GATEIO_API_KEY"))
+        .ok();
+    let api_secret = env::var("GATE_API_SECRET")
+        .or_else(|_| env::var("GATEIO_SECRET_KEY"))
+        .ok();
     
     if api_key.is_none() || api_secret.is_none() {
         log::warn!("⚠️  GATE_API_KEY и GATE_API_SECRET не установлены");
