@@ -10,8 +10,8 @@ pub mod triggers;
 pub mod sessions;
 
 pub use mshot::{MShotStrategy, MShotConfig, MShotSignal};
-pub use mstrike::{MStrikeStrategy, MStrikeConfig, MStrikeSignal};
-pub use hook::{HookStrategy, HookConfig, HookSignal};
+pub use mstrike::{MStrikeStrategy, MStrikeConfig, MStrikeSignal, MStrikeDirection};
+pub use hook::{HookStrategy, HookConfig, HookSignal, HookDirection};
 pub use spread::{SpreadStrategy, SpreadConfig, SpreadSignal};
 pub use ema_filter::{EmaFilter, EmaFilterCondition};
 pub use triggers::{TriggerManager, TriggerKey};

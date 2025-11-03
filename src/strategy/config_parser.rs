@@ -323,9 +323,38 @@ impl StrategyConfig {
         parse_f64_param(&mut config.take_profit, &params, "TakeProfit");
         parse_f64_param(&mut config.strategy_penalty, &params, "StrategyPenalty");
         
+        // Парсим MoonBot стратегии параметры (MShot, MStrike, Hook)
+        // Эти параметры парсятся независимо от типа стратегии
+        self::parse_moon_strategy_params(&mut config, &params);
+        
         Ok(config)
     }
     
+    /// Создает конфигурацию стратегии из текста для MoonBot стратегий
+    pub fn from_moon_strategy(strategy_name: &str, config_text: &str) -> anyhow::Result<StrategyConfig> {
+        let mut config = StrategyConfig::parse(config_text)?;
+        config.strategy_name = strategy_name.to_string();
+        Ok(config)
+    }
+}
+
+/// Парсинг параметров MoonBot стратегий (MShot, MStrike, Hook, Spread)
+fn parse_moon_strategy_params(config: &mut StrategyConfig, params: &HashMap<String, String>) {
+    // MShot параметры (если есть в конфиге, будут сохранены для будущего использования)
+    // Пока просто парсим, но не сохраняем в структуру (нужно расширить StrategyConfig)
+    
+    // MStrike параметры
+    if let Some(_) = params.get("MStrikeDepth") {
+        // TODO: Сохранить в расширенную структуру или отдельную конфигурацию
+    }
+    
+    // Hook параметры
+    if let Some(_time_frame) = params.get("HookTimeFrame") {
+        // TODO: Парсить HookTimeFrame
+    }
+}
+
+impl StrategyConfig {
     /// Форматирует конфигурацию обратно в текстовый формат
     pub fn to_string(&self) -> String {
         let mut result = String::from("##Begin_Strategy\n");

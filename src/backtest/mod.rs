@@ -9,6 +9,8 @@ pub mod metrics;
 pub mod bin_format;
 pub mod orderbook;
 pub mod filters;
+#[cfg(feature = "gate_exec")]
+pub mod strategy_adapter;
 
 pub use engine::{BacktestEngine, BacktestSettings, ExecutionMode};
 pub use emulator::{MarketEmulator, EmulatorSettings};
