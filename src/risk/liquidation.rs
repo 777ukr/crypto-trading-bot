@@ -64,7 +64,7 @@ impl LiquidationControl {
         position_size: f64,
         entry_price: f64,
         mark_price: f64,
-        balance: f64,
+        _balance: f64,
         leverage: f64,
     ) -> LiquidationWarning {
         if !self.enabled || position_size == 0.0 || entry_price <= 0.0 || mark_price <= 0.0 {
@@ -75,7 +75,7 @@ impl LiquidationControl {
         let liquidation_price = self.calculate_liquidation_price(
             position_size,
             entry_price,
-            balance,
+            _balance,
             leverage,
         );
 

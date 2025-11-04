@@ -369,25 +369,49 @@ async fn run_backtest_task(
                     }
                     
                     // Добавляем стратегии
-                    match strategy_name.as_str() {
+                    let strategy_added = match strategy_name.as_str() {
                         "mshot" => {
                             let config = MShotConfig::default();
                             engine.add_strategy_adapter(MShotAdapter::new(config));
+                            true
                         }
                         "mstrike" => {
                             let config = MStrikeConfig::default();
                             engine.add_strategy_adapter(MStrikeAdapter::new(config));
+                            true
                         }
                         "hook" => {
                             let config = HookConfig::default();
                             engine.add_strategy_adapter(HookAdapter::new(config));
+                            true
                         }
                         _ => {
                             // Другие стратегии пока не интегрированы
-                            eprintln!("⚠️  Стратегия {} пока не поддерживается", strategy_name);
-                            continue;
+                            let _ = progress_tx.send(ProgressMessage::Error {
+                                backtest_id: backtest_id.clone(),
+                                error: format!("⚠️  Стратегия {} пока не поддерживается. Доступны: mshot, mstrike, hook", strategy_name),
+                            });
+                            false
                         }
+                    };
+                    
+                    // Пропускаем если стратегия не добавлена
+                    if !strategy_added {
+                        continue;
                     }
+                    
+                    // Проверяем, что есть стратегии перед запуском
+                    // (проверка уже сделана выше через strategy_added)
+                    
+                    // Отправляем прогресс о начале
+                    let _ = progress_tx.send(ProgressMessage::Progress {
+                        backtest_id: backtest_id.clone(),
+                        progress: 0.0,
+                        current_tick: 0,
+                        total_ticks: 0,
+                        current_pnl: 0.0,
+                        trades: 0,
+                    });
                     
                     // Запускаем бэктест
                     match engine.run() {
@@ -445,7 +469,7 @@ async fn run_backtest_task(
     
     // Обновляем статус задачи
     {
-        let mut jobs = state.jobs.lock().await;
+        let jobs = state.jobs.lock().await;
         if let Some(BacktestJob::Running { .. }) = jobs.get(&backtest_id) {
             // Статус уже обновлен через Complete сообщение
         }
@@ -514,8 +538,11 @@ async fn load_trade_data(symbol: &str) -> anyhow::Result<Vec<TradeStream>> {
         }
     }
     
-    // Если данных нет - генерируем синтетические для демо
-    anyhow::bail!("Нет исторических данных для {}", symbol);
+    // Если данных нет - возвращаем понятную ошибку
+    Err(anyhow::anyhow!(
+        "Нет исторических данных для {}. Установите DATABASE_URL и загрузите данные через: cargo run --bin load_historical_data --features database,gate_exec",
+        symbol
+    ))
 }
 
 #[cfg(feature = "database")]

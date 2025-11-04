@@ -6,7 +6,7 @@
 //! - Auto Panic Sell If price drops < [actual buy] -X%
 //! - Panic Sell If BIDs at [buy] +X% drops
 
-use chrono::{DateTime, Utc};
+// DateTime и Utc не используются напрямую, но могут понадобиться в будущем
 
 #[derive(Debug, Clone)]
 pub struct PanicSellManager {
