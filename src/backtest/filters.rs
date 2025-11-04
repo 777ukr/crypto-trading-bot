@@ -12,8 +12,17 @@ pub struct MarketFilters {
     pub mark_price_filter: Option<MarkPriceFilter>,
     pub white_list: Vec<String>,
     pub black_list: Vec<String>,
+    pub exclude_blacklist_from_delta: bool, // Исключить из расчета дельт
     pub max_active_markets: usize,
     pub quote_asset: Option<String>, // USDT, BTC, etc.
+    
+    // Enhanced filters
+    pub dont_buy_if_price_changed_more: Option<f64>, // % изменения цены
+    pub min_pump_quality: Option<f64>, // Минимальный "pump Q"
+    pub min_daily_volume_btc: Option<f64>, // Минимальный дневной объем в BTC
+    pub max_3h_volume_btc: Option<f64>, // Максимальный объем за 3ч в BTC
+    pub dont_buy_pumped: bool, // Не покупать уже "накачанные" монеты
+    pub dont_buy_new_coins_minutes: Option<u32>, // Не покупать ново-добавленные монеты N минут
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

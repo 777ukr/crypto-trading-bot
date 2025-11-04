@@ -288,6 +288,19 @@ async fn run_backtest(
     State(state): State<AppState>,
     Json(request): Json<BacktestRequest>,
 ) -> Result<Json<BacktestResponse>, StatusCode> {
+    // Валидация входных данных
+    if request.strategies.is_empty() {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+    if request.symbols.is_empty() {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+    if request.leverage <= 0.0 || request.leverage > 125.0 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+    if request.initial_balance <= 0.0 || request.initial_balance > 1_000_000_000.0 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
     use std::time::{SystemTime, UNIX_EPOCH};
     let backtest_id = format!("bt_{}", 
         SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs());
