@@ -1,0 +1,27 @@
+# Config files with secrets - DO NOT COMMIT
+# These files contain API keys and should never be committed to git
+
+# Freqtrade config with API keys
+freqtrade_config.json
+
+# Gate.io MVP config with credentials
+gate_mvp.yaml
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Keep example/template files
+!freqtrade_config.example.json
+!gate_mvp.example.yaml
+!*.example.*
+!*.template.*
+
+# Keep documentation
+*.md
+
+# Keep schema files
+*.sql
+schema.sql
+
