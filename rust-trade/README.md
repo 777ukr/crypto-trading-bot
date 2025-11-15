@@ -1,356 +1,112 @@
-# Rust Trade
+# Rust Trading System
 
-A comprehensive cryptocurrency trading system with real-time data collection, advanced backtesting capabilities, and a professional desktop interface.
+A comprehensive cryptocurrency trading system built with Rust, featuring backtesting, paper trading, and live trading capabilities.
 
-[![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://tauri.app/)
+## Features
 
-## 🎯 Overview
+- 🔄 **Multiple Exchange Support**: Binance and Gate.io integration
+- 📊 **Backtesting Engine**: Test strategies on historical data
+- 📈 **Paper Trading**: Simulate trading without real money
+- 🌐 **Web Interface**: Next.js-based frontend with real-time visualization
+- 🖥️ **Desktop App**: Tauri-based desktop application
+- 📡 **HTTP API**: RESTful API for web frontend integration
+- 💾 **PostgreSQL Database**: Persistent data storage
+- ⚡ **High Performance**: Built with Rust for speed and reliability
 
-Rust Trade combines high-performance market data processing with sophisticated backtesting tools, delivering a complete solution for cryptocurrency quantitative trading. The system features real-time data collection from exchanges, a powerful backtesting engine with multiple strategies, and an intuitive desktop interface.
+## Strategies
 
-## 🏗️ Architecture
+- **SMA Strategy**: Simple Moving Average crossover
+- **RSI Strategy**: Relative Strength Index based trading
+- **Dip Buy Strategy**: Low-frequency strategy for buying dips
+- **EMA BTC Week Strategy**: Jesse-based strategy for weekly patterns
 
-### **Live Data Collection Mode**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Exchange      │───▶│    Service      │───▶│   Repository    │
-│   (WebSocket)   │    │  (Processing)   │    │   (Storage)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       ▼                       ▼
-    Binance API           ┌─────────────┐         ┌─────────────┐
-    - Real-time data      │ Multi-Level │         │ PostgreSQL  │
-    - Paper trading       │    Cache    │         │ Database    │
-                          │ (L1 + L2)   │         │             │
-                          └─────────────┘         └─────────────┘
-                                    │
-                                    ▼
-                          ┌─────────────────┐
-                          │ Paper Trading   │
-                          │    Engine       │
-                          └─────────────────┘
-```
-
-### **Desktop Application Mode**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Next.js       │───▶│  Tauri Commands │───▶│  Trading Core   │
-│   Frontend      │    │   (src-tauri)   │    │   (Library)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                       │
-                                │                       ▼
-                                │               ┌─────────────────┐
-                                │               │   Repository    │
-                                │               │   + Database    │
-                                │               └─────────────────┘
-                                ▼
-                        ┌─────────────────┐
-                        │ Backtest Engine │
-                        │  + Strategies   │
-                        └─────────────────┘
-```
-
-## 📁 Project Structure
-```
-rust-trade/
-├── assets/                # Project assets and screenshots
-├── config/                # Global configuration files
-│   ├── development.toml   # Development environment config
-│   ├── production.toml    # Production environment config
-│   └── test.toml          # Test environment config
-├── frontend/              # Next.js frontend application
-│   ├── src/               # Frontend source code
-│   │   ├── app/           # App router pages
-│   │   │   ├── page.tsx   # Dashboard homepage
-│   │   │   └── backtest/  # Backtesting interface
-│   │   ├── components/    # Reusable UI components
-│   │   │   ├── layout/    # Layout components
-│   │   │   └── ui/        # shadcn/ui components
-│   │   └── types/         # TypeScript type definitions
-│   ├── tailwind.config.js # Tailwind CSS configuration
-│   └── package.json       # Frontend dependencies
-├── src-tauri/             # Desktop application backend
-│   ├── src/               # Tauri command handlers and state management
-│   │   ├── commands.rs    # Tauri command implementations
-│   │   ├── main.rs        # Application entry point
-│   │   ├── state.rs       # Application state management
-│   │   └── types.rs       # Frontend interface types
-│   ├── Cargo.toml         # Tauri dependencies
-│   └── tauri.conf.json    # Tauri configuration
-├── trading-core/          # Core Rust trading system
-│   ├── src/               # Trading engine source code
-│   │   ├── backtest/      # Backtesting engine and strategies
-│   │   │   ├── engine.rs  # Core backtesting logic
-│   │   │   ├── metrics.rs # Performance calculations
-│   │   │   ├── portfolio.rs # Portfolio management
-│   │   │   └── strategy/  # Trading strategies (RSI, SMA)
-│   │   ├── data/          # Data layer
-│   │   │   ├── cache.rs   # Multi-level caching system
-│   │   │   ├── repository.rs # Database operations
-│   │   │   └── types.rs   # Core data structures
-│   │   ├── exchange/      # Exchange integrations
-│   │   │   └── binance.rs # Binance WebSocket client
-│   │   ├── live_trading/  # Paper trading system
-│   │   │   └── paper_trading.rs # Real-time strategy execution
-│   │   ├── service/       # Business logic layer
-│   │   │   └── market_data.rs # Data processing service
-│   │   ├── config.rs      # Configuration management
-│   │   ├── lib.rs         # Library entry point
-│   │   └── main.rs        # CLI application entry point
-│   ├── config/            # Configuration files
-│   ├── database/          # Database schema and migrations
-│   │   └── schema.sql     # PostgreSQL table definitions
-│   ├── benches/           # Performance benchmarks
-│   ├── Cargo.toml         # Core dependencies
-│   └── README.md          # Core system documentation
-└── README.md              # This file
-```
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-- **Rust 1.70+** - [Install Rust](https://rustup.rs/)
-- **Node.js 18+** - [Install Node.js](https://nodejs.org/)
-- **PostgreSQL 12+** - [Install PostgreSQL](https://www.postgresql.org/download/)
-- **Redis 6+** - [Install Redis](https://redis.io/download/) (optional but recommended)
+- Rust 1.70+
+- PostgreSQL
+- Node.js 18+
+- Redis (optional, for caching)
 
-### 1. Clone the Repository
+### Setup
 
-```bash
-git clone https://github.com/Erio-Harrison/rust-trade.git
-cd rust-trade
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/777ukr/rust-trade.git
+   cd rust-trade
+   ```
+
+2. **Setup database**
+   ```bash
+   # Create database and user
+   sudo -u postgres psql
+   CREATE DATABASE trading_core;
+   CREATE USER cryptotrader WITH PASSWORD 'cryptotrader';
+   GRANT ALL PRIVILEGES ON DATABASE trading_core TO cryptotrader;
+   ```
+
+3. **Run migrations**
+   ```bash
+   psql -U cryptotrader -d trading_core -f config/schema.sql
+   ```
+
+4. **Configure**
+   ```bash
+   # Edit config/development.toml
+   # Set your exchange API keys if needed
+   ```
+
+5. **Run API server**
+   ```bash
+   cd trading-core
+   export DATABASE_URL="postgresql://cryptotrader:cryptotrader@localhost/trading_core"
+   cargo run api
+   ```
+
+6. **Run web interface**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+7. **Open in browser**
+   ```
+   http://localhost:3000
+   ```
+
+## Documentation
+
+- [API Server Guide](API_SERVER_GUIDE.md)
+- [Quick Start API](QUICK_START_API.md)
+- [Database Setup](DATABASE_SETUP.md)
+- [EMA BTC Week Strategy](EMA_BTC_WEEK_STRATEGY.md)
+- [Dip Buy Strategy](DIP_BUY_STRATEGY.md)
+
+## Project Structure
+
+```
+rust-trade/
+├── trading-core/      # Rust backend
+│   ├── src/
+│   │   ├── api/       # HTTP API endpoints
+│   │   ├── backtest/  # Backtesting engine
+│   │   ├── data/      # Data repository and cache
+│   │   ├── exchange/  # Exchange integrations
+│   │   └── live_trading/ # Paper trading
+│   └── Cargo.toml
+├── frontend/          # Next.js frontend
+│   ├── src/
+│   │   └── app/       # React components
+│   └── package.json
+├── src-tauri/         # Tauri desktop app
+├── config/            # Configuration files
+└── scripts/           # Data import scripts
 ```
 
-### 2. Database Setup
+## License
 
-```bash
-# Create database
-createdb trading_core
+MIT License
 
-# Set up schema
-Run the SQL commands found in the config folder to create the database tables.
-```
-
-### 3. Environment Configuration
-
-Create `.env` files in both root directory and `trading-core/`:
-
-```bash
-# .env
-DATABASE_URL=postgresql://username:password@localhost/trading_core
-REDIS_URL=redis://127.0.0.1:6379
-RUN_MODE=development
-```
-
-### 4. Install Dependencies
-
-```bash
-# Install Rust dependencies
-cd trading-core
-cargo build
-cd ..
-
-# Install frontend dependencies
-cd frontend
-npm install
-cd ..
-
-# Install Tauri dependencies
-cd src-tauri
-cargo build
-cd ..
-```
-
-PS: 
-
-## 🎮 Running the Application
-
-### Option 1: Desktop Application (Recommended)
-
-```bash
-# Development mode with hot reload
-cd frontend && npm run tauri dev
-# or alternatively
-cd frontend && cargo tauri dev
-
-# Production build
-cd frontend && npm run tauri build
-# or alternatively
-cd frontend && cargo tauri build
-```
-
-### Option 2: Core Trading System (CLI)
-
-```bash
-cd trading-core
-
-# Start live data collection
-cargo run live
-
-# Start live data collection with paper trading
-cargo run live --paper-trading
-
-# Run backtesting interface
-cargo run backtest
-
-# Show help
-cargo run -- --help
-```
-
-### Option 3: Web Interface Only
-
-```bash
-cd frontend
-
-# Development server
-npm run dev
-
-# Production build
-npm run build
-npm start
-```
-
-## 📊 Features
-
-### **Live Data Collection**
-- Real-time WebSocket connections to cryptocurrency exchanges
-- High-performance data processing (~390µs single insert, ~13ms batch)
-- Multi-level caching with Redis and in-memory storage
-- Automatic retry mechanisms and error handling
-
-### **Advanced Backtesting**
-- Multiple trading strategies (SMA, RSI)
-- Professional performance metrics (Sharpe ratio, drawdown, win rate)
-- Portfolio management with P&L tracking
-- Interactive parameter configuration
-
-### **Desktop Interface**
-- Real-time data visualization
-- Intuitive strategy configuration
-- Comprehensive result analysis
-- Cross-platform support (Windows, macOS, Linux)
-
-## 🖼️ Screenshots
-
-### Backtest Configuration
-![Backtest Configuration](assets/backtestPage1.png)
-
-### Results Dashboard
-![Results Dashboard](assets/backtestPage2.png)
-
-### Trade Analysis
-![Trade Analysis](assets/backtestPage3.png)
-
-## ⚙️ Configuration
-
-### Trading Symbols
-
-Edit `config/development.toml`:
-
-```toml
-# Trading pairs to monitor
-symbols = ["BTCUSDT", "ETHUSDT", "ADAUSDT"]
-
-[server]
-host = "0.0.0.0"
-port = 8080
-
-[database]
-max_connections = 5
-min_connections = 1
-max_lifetime = 1800
-
-[cache]
-[cache.memory]
-max_ticks_per_symbol = 1000
-ttl_seconds = 300
-
-[cache.redis]
-pool_size = 10
-ttl_seconds = 3600
-max_ticks_per_symbol = 10000
-```
-
-### Logging
-
-Set log levels via environment variables:
-
-```bash
-# Application logs
-RUST_LOG=trading_core=info
-
-# Debug mode
-RUST_LOG=trading_core=debug,sqlx=info
-```
-
-## 📈 Performance
-
-Based on comprehensive benchmarks:
-
-| Operation | Performance | Use Case |
-|-----------|-------------|----------|
-| Single tick insert | ~390µs | Real-time data |
-| Batch insert (100) | ~13ms | Bulk processing |
-| Cache hit | ~10µs | Data retrieval |
-| Historical query | ~450µs | Backtesting |
-
-## 🔧 Development
-
-### Running Tests
-
-```bash
-# Core system tests
-cd trading-core
-cargo test
-
-# Benchmarks
-cargo bench
-
-# Frontend tests
-cd frontend
-npm test
-```
-
-### Building for Production
-
-```bash
-# Build trading core
-cd trading-core
-cargo build --release
-
-# Build desktop app
-cd ../frontend
-npm run tauri build
-
-# Build web interface
-npm run build
-```
-
-## 📚 Documentation
-
-- **Trading Core**: See `trading-core/README.md` for detailed backend documentation
-- **Desktop App**: See `src-tauri/README.md` for Tauri application details
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Erio Harrison** - [GitHub](https://github.com/Erio-Harrison)
-
-
----
-
-Built with ❤️ using Rust, Tauri, and Next.js
+Copyright (c) 2025 777ukr
